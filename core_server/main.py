@@ -7,6 +7,7 @@ import sys
 
 # --- CONFIGURATION ---
 API_URL = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
+CLOUD_AUDIT_URL = "https://crypto-sentinel-audit.onrender.com/audit"
 HOST = '127.0.0.1' 
 PORT = 5000         
 
@@ -29,10 +30,22 @@ def fetch_crypto_price():
             if response.status_code == 200:
                 data = response.json()
                 price = data.get('bitcoin', {}).get('usd', 0)
+                
+                # Update global state
                 latest_data["bitcoin_price"] = price
                 latest_data["last_updated"] = time.strftime("%H:%M:%S")
                 latest_data["status"] = "Live"
                 print(f"[API CLIENT] Fetched: ${price} at {latest_data['last_updated']}")
+                
+                def send_audit(p):
+                    try:
+                        requests.post(CLOUD_AUDIT_URL, json={"price": p}, timeout=3)
+                        print(f"[CLOUD UPLOAD] Audit sent to {CLOUD_AUDIT_URL}")
+                    except Exception as err:
+                        print(f"[CLOUD UPLOAD] Warning - Failed: {err}")
+                        
+                audit_thread = threading.Thread(target=send_audit, args=(price,))
+                audit_thread.start()
             else:
                 print(f"[API CLIENT] Error: API returned {response.status_code}")
         except Exception as e:
@@ -96,11 +109,8 @@ if __name__ == "__main__":
     try:
         start_socket_server()
     except KeyboardInterrupt:
-        # This block runs when you press Ctrl+C
         print("\n[SYSTEM] Shutdown signal received. Stopping threads...")
         running = False
-        
-        # Wait a moment for threads to clean up
         time.sleep(1) 
         print("[SYSTEM] System stopped cleanly.")
         sys.exit(0)
