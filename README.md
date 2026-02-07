@@ -7,23 +7,23 @@ In an environment where market data latency and compliance are critical, CryptoS
 
 ---
 
-## 2. System Architecture (Exam Requirements)
+## 2. System Architecture
 
 The solution is built as a distributed system comprising three decoupled components:
 
 ### A. The Core Engine (Data Aggregator)
-* **Requirement Met:** *Client application for a PUBLIC Web service.*
-* **Function:** Connects to the **CoinGecko API** to fetch live Bitcoin prices. It uses multi-threading to ensure non-blocking performance.
+* **Role:** The central hub connecting the public internet to the internal network.
+* **Function:** Connects to the **CoinGecko API** to fetch live Bitcoin prices. It uses multi-threading to ensure non-blocking performance while serving multiple clients simultaneously.
 * **Location:** `core_server/main.py`
 
 ### B. The Trader Dashboard (Client App)
-* **Requirement Met:** *Client-server application that uses sockets.*
-* **Function:** A dedicated GUI application (Tkinter) that connects to the Core Engine via raw **TCP Sockets**. It receives push updates instantly, bypassing the overhead of HTTP/Browsers.
+* **Role:** The end-user visualization tool.
+* **Function:** A dedicated GUI application (Tkinter) that connects to the Core Engine via raw **TCP Sockets**. It receives push updates instantly, bypassing the overhead of HTTP browsers for maximum speed.
 * **Location:** `desktop_client/gui.py`
 
 ### C. The Cloud Audit Vault
-* **Requirement Met:** *Application that has one component in a public Cloud.*
-* **Function:** A Flask microservice hosted on **Render.com**. The Core Engine automatically uploads audit logs to this service via HTTPS POST requests.
+* **Role:** The remote compliance logger.
+* **Function:** A Flask microservice hosted on **Render.com**. The Core Engine automatically uploads audit logs to this service via HTTPS POST requests to ensure data integrity.
 * **Location:** `cloud_service/app.py` (Deployed to Cloud)
 
 ---
